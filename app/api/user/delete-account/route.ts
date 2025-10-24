@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { createClient } from '@supabase/supabase-js';
+import { query } from '@/lib/database';
 import bcrypt from 'bcryptjs';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -27,18 +22,18 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get current user data
-    const { data: user, error: fetchError } = await supabase
-      .from('users')
-      .select('password')
-      .eq('id', session.user.id)
-      .single();
+    const userResult = await query(
+      'SELECT password_hash FROM users WHERE id = $1',
+      [parseInt(session.user.id)]
+    );
+    const user = userResult.rows[0];
 
-    if (fetchError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Password is incorrect' },
@@ -47,15 +42,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete user account
-    const { error: deleteError } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', session.user.id);
-
-    if (deleteError) {
-      console.error('Database error:', deleteError);
-      return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });
-    }
+    await query('DELETE FROM users WHERE id = $1', [parseInt(session.user.id)]);
 
     return NextResponse.json({
       message: 'Account deleted successfully'

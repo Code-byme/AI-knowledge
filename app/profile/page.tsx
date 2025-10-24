@@ -426,7 +426,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">User ID</span>
-                <span className="text-sm font-mono">{profile.id.slice(0, 8)}...</span>
+                <span className="text-sm font-mono">{profile.id}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Last Login</span>

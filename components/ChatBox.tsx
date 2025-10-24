@@ -68,7 +68,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `I understand you're asking about "${userMessage.content}". Based on your uploaded documents, here's what I found...`,
+        content: 'AI functionality is currently disabled. Please upload your documents and we\'ll work on the AI features later.',
         timestamp: new Date(),
       };
       
@@ -101,7 +101,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
-      <div className="bg-card p-4 rounded-lg mb-4">
+      <div className="bg-card p-4 rounded-lg mb-4 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
@@ -125,8 +125,8 @@ export default function ChatBox({ className }: ChatBoxProps) {
         </div>
       </div>
 
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Container - This will scroll */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -199,8 +199,8 @@ export default function ChatBox({ className }: ChatBoxProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="bg-card border border-border rounded-lg p-4">
+      {/* Input Area - Fixed at bottom */}
+      <div className="bg-card border border-border rounded-lg p-4 shrink-0">
         <div className="flex items-end space-x-3">
           <Button variant="ghost" size="icon" title="Attach file">
             <Paperclip className="h-4 w-4" />

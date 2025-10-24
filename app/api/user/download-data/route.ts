@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { query } from '@/lib/database';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,13 +12,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all user data
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
+    const result = await query(
+      'SELECT * FROM users WHERE id = $1',
+      [parseInt(session.user.id)]
+    );
+    const user = result.rows[0];
 
-    if (error || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
     }
 

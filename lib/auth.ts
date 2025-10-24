@@ -1,25 +1,18 @@
 import { NextAuthOptions } from 'next-auth';
-import { SupabaseAdapter } from '@auth/supabase-adapter';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { query } from './database';
 
 export const authOptions: NextAuthOptions = {
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  }),
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    // Only add Google provider if credentials are provided
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      })
+    ] : []),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -32,21 +25,18 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Check if user exists in Supabase
-          const { data: user, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', credentials.email)
-            .single();
+          // Check if user exists in PostgreSQL
+          const result = await query('SELECT * FROM users WHERE email = $1', [credentials.email]);
+          const user = result.rows[0];
 
-          if (error || !user) {
+          if (!user || !user.password_hash) {
             return null;
           }
 
           // Verify password
           const isPasswordValid = await bcrypt.compare(
             credentials.password,
-            user.password
+            user.password_hash
           );
 
           if (!isPasswordValid) {
@@ -54,7 +44,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           return {
-            id: user.id,
+            id: user.id.toString(),
             email: user.email,
             name: user.name,
             image: user.image,
@@ -86,10 +76,7 @@ export const authOptions: NextAuthOptions = {
       // Update last login time when user signs in
       if (user?.id) {
         try {
-          await supabase
-            .from('users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('id', user.id);
+          await query('UPDATE users SET last_login = $1 WHERE id = $2', [new Date(), parseInt(user.id)]);
         } catch (error) {
           console.error('Failed to update last login:', error);
           // Don't block login if this fails
