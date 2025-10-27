@@ -21,6 +21,7 @@ interface Message {
   content: string;
   timestamp: Date;
   isTyping?: boolean;
+  documentsUsed?: number;
 }
 
 interface ChatBoxProps {
@@ -32,7 +33,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
     {
       id: '1',
       type: 'system',
-      content: 'Welcome! Upload your documents and start asking questions.',
+      content: 'Welcome! I\'m your AI assistant powered by OpenRouter. Upload your documents and ask me anything - I\'ll use your knowledge base to provide helpful, contextual answers.',
       timestamp: new Date(),
     },
   ]);
@@ -60,21 +61,46 @@ export default function ChatBox({ className }: ChatBoxProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input.trim();
     setInput('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: currentInput }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: 'AI functionality is currently disabled. Please upload your documents and we\'ll work on the AI features later.',
+        content: data.response,
         timestamp: new Date(),
+        documentsUsed: data.documentsUsed || 0,
       };
       
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -109,7 +135,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
               <div>
                 <h3 className="font-semibold">AI Assistant</h3>
                 <p className="text-sm text-muted-foreground">
-                  Ask me anything about your documents
+                  Ask me anything about your documents - I'll use AI to provide contextual answers
                 </p>
               </div>
             </div>
@@ -171,9 +197,16 @@ export default function ChatBox({ className }: ChatBoxProps) {
                   {getRelativeTime(message.timestamp)}
                 </span>
                 {message.type === 'assistant' && (
-                  <Badge variant="secondary" className="text-xs">
-                    AI
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      AI
+                    </Badge>
+                    {message.documentsUsed && message.documentsUsed > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        {message.documentsUsed} doc{message.documentsUsed !== 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

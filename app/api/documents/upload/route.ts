@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { query } from '@/lib/database';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import mammoth from 'mammoth';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -62,10 +62,33 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
-    // Extract text content for search (basic implementation)
+    // Extract text content for search
     let content = '';
-    if (file.type === 'text/plain' || file.type === 'text/markdown') {
-      content = buffer.toString('utf-8');
+    
+    try {
+      if (file.type === 'text/plain' || file.type === 'text/markdown' || file.type === 'text/csv') {
+        content = buffer.toString('utf-8');
+      } else if (file.type === 'application/json') {
+        try {
+          const jsonContent = JSON.parse(buffer.toString('utf-8'));
+          content = JSON.stringify(jsonContent, null, 2);
+        } catch (e) {
+          content = buffer.toString('utf-8');
+        }
+      } else if (file.type === 'application/pdf') {
+        // PDF files are stored but content extraction is disabled for now
+        content = `[PDF Document: ${file.name}]\n\nPDF uploaded successfully and stored. Content extraction is currently disabled. For AI analysis, please convert to DOCX or TXT format.`;
+      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        // Extract text from DOCX
+        const result = await mammoth.extractRawText({ buffer });
+        content = result.value;
+      } else if (file.type === 'application/msword') {
+        // For older .doc files, we'll store them but can't easily extract content
+        content = '[DOC file - content extraction not supported for .doc files. Please convert to .docx for full functionality.]';
+      }
+    } catch (extractionError) {
+      console.error('Content extraction error:', extractionError);
+      content = `[Error extracting content from ${file.name}: ${extractionError instanceof Error ? extractionError.message : 'Unknown error'}]`;
     }
 
     // Save file info to database

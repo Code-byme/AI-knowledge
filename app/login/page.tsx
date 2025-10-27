@@ -199,11 +199,6 @@ export default function LoginPage() {
                 </svg>
                 Continue with Google
               </Button>
-              
-              <Button variant="outline" className="w-full" size="lg">
-                <Github className="mr-2 h-4 w-4" />
-                Continue with GitHub
-              </Button>
             </div>
             
             <div className="text-center text-sm">

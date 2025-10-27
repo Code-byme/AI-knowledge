@@ -1,15 +1,11 @@
-import { withAuth } from 'next-auth/middleware';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export default withAuth(
-  function middleware(req) {
-    // Add any additional middleware logic here
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
-  }
-);
+export function middleware(request: NextRequest) {
+  // For now, just pass through all requests
+  // You can add authentication logic here later if needed
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ['/dashboard/:path*', '/profile']

@@ -280,11 +280,6 @@ export default function SignupPage() {
                 </svg>
                 Sign up with Google
               </Button>
-              
-              <Button variant="outline" className="w-full" size="lg">
-                <Github className="mr-2 h-4 w-4" />
-                Sign up with GitHub
-              </Button>
             </div>
             
             <div className="text-center text-sm">
