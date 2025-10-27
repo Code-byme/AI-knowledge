@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { message } = await request.json();
+    const { message, sessionId } = await request.json();
     
     if (!message) {
       return NextResponse.json(
@@ -30,6 +30,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const userId = parseInt(session.user.id);
+    let currentSessionId = sessionId;
+
+    // Create new session if none provided
+    if (!currentSessionId) {
+      const newSession = await query(`
+        INSERT INTO chat_sessions (user_id, title)
+        VALUES ($1, 'New Chat')
+        RETURNING id
+      `, [userId]);
+      currentSessionId = newSession.rows[0].id;
+    } else {
+      // Verify session belongs to user
+      const sessionCheck = await query(`
+        SELECT id FROM chat_sessions 
+        WHERE id = $1 AND user_id = $2
+      `, [currentSessionId, userId]);
+
+      if (sessionCheck.rows.length === 0) {
+        return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+      }
+    }
+
+    // Save user message to database
+    await query(`
+      INSERT INTO chat_messages (session_id, role, content, documents_used)
+      VALUES ($1, 'user', $2, 0)
+    `, [currentSessionId, message]);
+
     // Get user's documents for context
     const documentsResult = await query(
       `SELECT id, title, content, file_type, file_path 
@@ -37,7 +66,7 @@ export async function POST(request: NextRequest) {
        WHERE user_id = $1 AND content IS NOT NULL AND content != ''
        ORDER BY created_at DESC 
        LIMIT 10`,
-      [parseInt(session.user.id)]
+      [userId]
     );
 
     const documents = documentsResult.rows;
@@ -100,12 +129,27 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+    const assistantResponse = data.choices[0]?.message?.content || 'No response received';
+    
+    // Save assistant message to database
+    await query(`
+      INSERT INTO chat_messages (session_id, role, content, documents_used)
+      VALUES ($1, 'assistant', $2, $3)
+    `, [currentSessionId, assistantResponse, documents.length]);
+
+    // Update session's updated_at timestamp
+    await query(`
+      UPDATE chat_sessions 
+      SET updated_at = NOW() 
+      WHERE id = $1
+    `, [currentSessionId]);
     
     return NextResponse.json({
       success: true,
-      response: data.choices[0]?.message?.content || 'No response received',
+      response: assistantResponse,
       usage: data.usage,
       documentsUsed: documents.length,
+      sessionId: currentSessionId,
     });
 
   } catch (error) {

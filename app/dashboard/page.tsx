@@ -13,14 +13,12 @@ import FileList from '@/components/FileList';
 import AuthProtection from '@/lib/auth-protection';
 import Link from 'next/link';
 import { 
-  Menu, 
   MessageSquare, 
   FileText, 
   User
 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { data: session } = useSession();
@@ -63,54 +61,17 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Mobile Sidebar */}
-        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden fixed top-20 left-4 z-50">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64">
-            <SheetTitle className="sr-only">Dashboard Navigation</SheetTitle>
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold">Dashboard</h2>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Main</h3>
-                {sidebarItems.map((item) => (
-                  <Button
-                    key={item.label}
-                    variant={item.active ? 'default' : 'ghost'}
-                    className={`w-full justify-start ${
-                      item.active ? 'bg-primary text-primary-foreground' : ''
-                    }`}
-                    onClick={() => {
-                      setActiveTab(item.label.toLowerCase());
-                      setIsSidebarOpen(false);
-                    }}
-                  >
-                    <item.icon className="mr-3 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                ))}
-              </div>
-              
-            </div>
-          </SheetContent>
-        </Sheet>
 
             {/* Main Content */}
             <div className="flex-1 p-4 lg:p-6 h-full lg:ml-64 flex flex-col">
-          {/* Welcome Header */}
-          <div className="mb-6">
+          {/* Welcome Header - Desktop Only */}
+          <div className="mb-6 hidden lg:block">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold">Welcome back, {session?.user?.name || 'User'}!</h1>
                 <p className="text-muted-foreground">Manage your documents and chat with your AI assistant.</p>
               </div>
-              <div className="flex items-center space-x-3">
+              {/* <div className="flex items-center space-x-3">
                 <div className="text-right">
                   <p className="text-sm font-medium">{session?.user?.name || 'User'}</p>
                   <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
@@ -121,12 +82,12 @@ export default function DashboardPage() {
                     Profile
                   </Button>
                 </Link>
-              </div>
+              </div> */}
             </div>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-fit">
+          <div className="flex space-x-1 mb-4 lg:mb-6 bg-muted p-1 rounded-lg w-fit">
             <Button
               variant={activeTab === 'chat' ? 'default' : 'ghost'}
               size="sm"
@@ -149,7 +110,7 @@ export default function DashboardPage() {
 
           {/* Tab Content */}
           {activeTab === 'chat' && (
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 bg-background rounded-lg border border-border overflow-hidden">
               <ChatBox />
             </div>
           )}

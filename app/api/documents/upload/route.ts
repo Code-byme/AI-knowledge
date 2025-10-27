@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
+    // Create secure uploads directory if it doesn't exist (outside public)
+    const uploadsDir = join(process.cwd(), 'secure-uploads');
     if (!existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true });
     }
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         parseInt(session.user.id),
         title || file.name,
         content,
-        `/uploads/${fileName}`,
+        fileName, // Store just the filename, not the full path
         file.type,
         file.size
       ]

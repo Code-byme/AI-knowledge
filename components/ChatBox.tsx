@@ -12,7 +12,9 @@ import {
   Paperclip, 
   Bot, 
   User,
-  Loader2
+  Loader2,
+  File,
+  X
 } from 'lucide-react';
 
 interface Message {
@@ -33,14 +35,17 @@ export default function ChatBox({ className }: ChatBoxProps) {
     {
       id: '1',
       type: 'system',
-      content: 'Welcome! I\'m your AI assistant powered by OpenRouter. Upload your documents and ask me anything - I\'ll use your knowledge base to provide helpful, contextual answers.',
+      content: 'Welcome! I\'m your AI assistant. Upload your documents and ask me anything - I\'ll use your knowledge base to provide helpful, contextual answers.',
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,6 +115,86 @@ export default function ChatBox({ className }: ChatBoxProps) {
     }
   };
 
+  const handleFileSelect = (file: File) => {
+    // Validate file type and size
+    const allowedTypes = [
+      'application/pdf',
+      'text/plain',
+      'application/json',
+      'text/csv',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please select a valid file type (PDF, TXT, JSON, CSV, DOC, DOCX)');
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      alert('File size must be less than 10MB');
+      return;
+    }
+    
+    setSelectedFile(file);
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    
+    try {
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Add success message
+        const successMessage: Message = {
+          id: Date.now().toString(),
+          type: 'system',
+          content: `✅ File "${selectedFile.name}" uploaded successfully! You can now ask questions about this document.`,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, successMessage]);
+        setSelectedFile(null);
+        
+        // Clear file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+    } catch (error) {
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        type: 'system',
+        content: `❌ Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -140,14 +225,14 @@ export default function ChatBox({ className }: ChatBoxProps) {
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" title="New Chat">
               <Plus className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" title="Options">
               <MoreVertical className="h-4 w-4" />
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -234,10 +319,63 @@ export default function ChatBox({ className }: ChatBoxProps) {
 
       {/* Input Area - Fixed at bottom */}
       <div className="bg-card border border-border rounded-lg p-4 shrink-0">
-        <div className="flex items-end space-x-3">
-          <Button variant="ghost" size="icon" title="Attach file">
-            <Paperclip className="h-4 w-4" />
-          </Button>
+        {/* File Selection Display */}
+        {selectedFile && (
+          <div className="mb-3 p-3 bg-muted rounded-lg flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <File className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">{selectedFile.name}</span>
+              <span className="text-xs text-muted-foreground">
+                ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={handleFileUpload}
+                disabled={isUploading}
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload'
+                )}
+              </Button>
+              <Button
+                onClick={removeSelectedFile}
+                variant="ghost"
+                size="sm"
+                disabled={isUploading}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.txt,.json,.csv,.doc,.docx"
+              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+              className="hidden"
+            />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              title="Attach file"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+          </div>
           
           <div className="flex-1">
             <Textarea
