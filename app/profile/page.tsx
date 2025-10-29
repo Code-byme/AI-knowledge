@@ -4,11 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Navbar from '@/components/Navbar';
 import AuthProtection from '@/lib/auth-protection';
@@ -654,7 +651,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <Label htmlFor="deleteConfirmation" className="text-slate-300">
-                        Type "DELETE" to confirm account deletion
+                        Type &quot;DELETE&quot; to confirm account deletion
                       </Label>
                       <Input
                         id="deleteConfirmation"

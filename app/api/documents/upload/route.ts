@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     const allowedTypes = [
-      'application/pdf',
       'text/plain',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ 
-        error: 'File type not supported. Allowed types: PDF, TXT, DOC, DOCX, MD, JSON, CSV' 
+        error: 'File type not supported. Allowed types: TXT, DOC, DOCX, MD, JSON, CSV' 
       }, { status: 400 });
     }
 
@@ -72,12 +71,9 @@ export async function POST(request: NextRequest) {
         try {
           const jsonContent = JSON.parse(buffer.toString('utf-8'));
           content = JSON.stringify(jsonContent, null, 2);
-        } catch (e) {
+        } catch {
           content = buffer.toString('utf-8');
         }
-      } else if (file.type === 'application/pdf') {
-        // PDF files are stored but content extraction is disabled for now
-        content = `[PDF Document: ${file.name}]\n\nPDF uploaded successfully and stored. Content extraction is currently disabled. For AI analysis, please convert to DOCX or TXT format.`;
       } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         // Extract text from DOCX
         const result = await mammoth.extractRawText({ buffer });

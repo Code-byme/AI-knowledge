@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import Navbar from '@/components/Navbar';
-import { Brain, Mail, Lock, Eye, EyeOff, User, Github } from 'lucide-react';
+import { Brain, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -69,7 +69,7 @@ export default function SignupPage() {
       } else {
         setError(data.error || 'Registration failed');
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred during registration');
     } finally {
       setIsLoading(false);
@@ -80,7 +80,7 @@ export default function SignupPage() {
     setIsLoading(true);
     try {
       await signIn('google', { callbackUrl: '/dashboard' });
-    } catch (error) {
+    } catch {
       setError('An error occurred during Google sign-up');
     } finally {
       setIsLoading(false);

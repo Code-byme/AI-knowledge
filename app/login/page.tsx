@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -11,9 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import Navbar from '@/components/Navbar';
-import { Brain, Mail, Lock, Eye, EyeOff, Github } from 'lucide-react';
+import { Brain, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +43,7 @@ export default function LoginPage() {
       } else {
         router.push(callbackUrl);
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred during login');
     } finally {
       setIsLoading(false);
@@ -54,7 +54,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signIn('google', { callbackUrl });
-    } catch (error) {
+    } catch {
       setError('An error occurred during Google sign-in');
     } finally {
       setIsLoading(false);
@@ -204,7 +204,7 @@ export default function LoginPage() {
             </div>
             
             <div className="text-center text-sm">
-              <span className="text-muted-foreground">Don't have an account? </span>
+              <span className="text-muted-foreground">Don&apos;t have an account? </span>
               <Link href="/signup" className="text-primary hover:underline">
                 Sign up
               </Link>
@@ -213,5 +213,13 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

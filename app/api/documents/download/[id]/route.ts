@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { query } from '@/lib/database';
 import { readFile, unlink } from 'fs/promises';
@@ -6,17 +6,18 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const documentId = params.id;
+    const documentId = id;
     const userId = parseInt(session.user.id);
 
     // Get document info and verify ownership
@@ -60,17 +61,18 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const documentId = params.id;
+    const documentId = id;
     const userId = parseInt(session.user.id);
 
     // Get document info and verify ownership

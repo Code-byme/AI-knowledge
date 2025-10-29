@@ -13,8 +13,6 @@ import {
   FileImage, 
   FileCode, 
   X, 
-  CheckCircle,
-  AlertCircle,
   Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -120,7 +118,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
         throw new Error(error.error || 'Upload failed');
       }
 
-      const result = await response.json();
+      await response.json();
       toast.success('File uploaded successfully!');
       
       // Reset form
@@ -206,7 +204,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
                   type="file"
                   onChange={handleFileInputChange}
                   className="hidden"
-                  accept=".pdf,.txt,.doc,.docx,.md,.json,.csv"
+                  accept=".txt,.doc,.docx,.md,.json,.csv"
                 />
               </div>
             </div>

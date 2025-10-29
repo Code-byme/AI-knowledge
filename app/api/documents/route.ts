@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
 
     // Build query conditions
-    let whereConditions = ['user_id = $1'];
-    let params: any[] = [parseInt(session.user.id)];
+    const whereConditions = ['user_id = $1'];
+    const params: string[] = [parseInt(session.user.id).toString()];
     let paramCount = 1;
 
     if (fileType) {

@@ -1,14 +1,12 @@
 import { Pool } from 'pg';
 
 // PostgreSQL Database Configuration
-// Direct database connection without ORM
+// Use DATABASE_URL for Neon connection
 const dbConfig = {
-  host: process.env.POSTGRES_HOST || 'localhost',
-  port: parseInt(process.env.POSTGRES_PORT || '5432'),
-  database: process.env.POSTGRES_DB || 'ai_knowledge_db',
-  user: process.env.POSTGRES_USER || 'postgres',
-  password: process.env.POSTGRES_PASSWORD || 'postgres',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  },
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -24,7 +22,7 @@ pool.on('error', (err) => {
 });
 
 // Execute a query
-export const query = async (text: string, params?: any[]) => {
+export const query = async (text: string, params?: unknown[]) => {
   const start = Date.now();
   try {
     const res = await pool.query(text, params);

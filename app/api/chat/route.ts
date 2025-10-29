@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { query } from '@/lib/database';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,29 +68,23 @@ export async function POST(request: NextRequest) {
     );
 
     const documents = documentsResult.rows;
+
+    // Create the optimized prompt structure
+    const systemPrompt = "You are an AI assistant helping users with their uploaded documents. Provide accurate and helpful responses based on the document content.";
     
-    // Build context from documents
-    let documentContext = '';
+    // Build document context as separate system message
+    let documentContextMessage = '';
     if (documents.length > 0) {
-      documentContext = '\n\nRelevant documents from your knowledge base:\n';
+      documentContextMessage = 'Relevant documents:\n';
       documents.forEach((doc, index) => {
-        documentContext += `\n--- Document ${index + 1}: ${doc.title} ---\n`;
+        documentContextMessage += `\nDocument ${index + 1}: ${doc.title}\n`;
         // Truncate content to avoid token limits
         const truncatedContent = doc.content.length > 2000 
           ? doc.content.substring(0, 2000) + '...' 
           : doc.content;
-        documentContext += truncatedContent + '\n';
+        documentContextMessage += truncatedContent + '\n';
       });
     }
-
-    // Create the prompt with document context
-    const systemPrompt = `You are an AI assistant helping users with their uploaded documents. 
-    You have access to their knowledge base and should provide helpful, accurate responses based on the document content.
-    If the user's question relates to the uploaded documents, use that information to provide a comprehensive answer.
-    If the question is not related to the documents, provide a helpful general response.
-    Always be helpful, accurate, and cite specific information from the documents when relevant.`;
-
-    const userPrompt = `${message}${documentContext}`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -103,7 +95,7 @@ export async function POST(request: NextRequest) {
         'X-Title': 'AI Knowledge Hub',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o',
+        model: 'meta-llama/llama-3.2-3b-instruct:free',      
         messages: [
           {
             role: 'system',
@@ -111,8 +103,12 @@ export async function POST(request: NextRequest) {
           },
           {
             role: 'user',
-            content: userPrompt
-          }
+            content: message
+          },
+          ...(documentContextMessage ? [{
+            role: 'system',
+            content: documentContextMessage
+          }] : [])
         ],
         max_tokens: 1000,
         temperature: 0.7,

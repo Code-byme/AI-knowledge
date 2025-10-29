@@ -19,12 +19,9 @@ import {
   FileCode, 
   Download, 
   Trash2, 
-  Eye,
   Calendar,
   HardDrive,
   Search,
-  Filter,
-  MoreHorizontal,
   AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -173,7 +170,6 @@ export default function FileList({ refreshTrigger }: FileListProps) {
   };
 
   const getFileIcon = (fileType: string) => {
-    if (fileType.includes('pdf')) return <File className="h-5 w-5 text-red-500" />;
     if (fileType.includes('text') || fileType.includes('markdown') || fileType.includes('md')) return <FileText className="h-5 w-5 text-blue-500" />;
     if (fileType.includes('image')) return <FileImage className="h-5 w-5 text-green-500" />;
     if (fileType.includes('json') || fileType.includes('code')) return <FileCode className="h-5 w-5 text-purple-500" />;
@@ -182,7 +178,6 @@ export default function FileList({ refreshTrigger }: FileListProps) {
   };
 
   const getFileTypeColor = (fileType: string) => {
-    if (fileType.includes('pdf')) return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
     if (fileType.includes('text') || fileType.includes('markdown') || fileType.includes('md')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
     if (fileType.includes('image')) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
     if (fileType.includes('json') || fileType.includes('code')) return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
@@ -200,7 +195,6 @@ export default function FileList({ refreshTrigger }: FileListProps) {
 
   const getFileTypeName = (fileType: string) => {
     const typeMap: { [key: string]: string } = {
-      'application/pdf': 'PDF',
       'text/plain': 'TXT',
       'application/msword': 'DOCX',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
@@ -258,7 +252,6 @@ export default function FileList({ refreshTrigger }: FileListProps) {
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background w-full sm:w-auto"
           >
             <option value="all">All Types</option>
-            <option value="application/pdf">PDF</option>
             <option value="application/vnd.openxmlformats-officedocument.wordprocessingml.document">DOCX</option>
             <option value="text/csv">CSV</option>
             <option value="text/markdown">MD</option>

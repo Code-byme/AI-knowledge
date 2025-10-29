@@ -98,11 +98,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as any).id = token.id as string;
+        (session.user as { id: string }).id = token.id as string;
       }
       return session;
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       try {
         if (account?.provider === 'google' && user?.email) {
           // Check if user already exists in database

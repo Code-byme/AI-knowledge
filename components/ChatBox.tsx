@@ -7,8 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
   Send, 
-  Plus, 
-  MoreVertical, 
   Paperclip, 
   Bot, 
   User,
@@ -153,7 +151,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
       });
       
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
         
         // Add success message
         const successMessage: Message = {
@@ -195,9 +193,9 @@ export default function ChatBox({ className }: ChatBoxProps) {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  // const formatTime = (date: Date) => {
+  //   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // };
 
   const getRelativeTime = (date: Date) => {
     const now = new Date();
@@ -220,7 +218,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
               <div>
                 <h3 className="font-semibold">AI Assistant</h3>
                 <p className="text-sm text-muted-foreground">
-                  Ask me anything about your documents - I'll use AI to provide contextual answers
+                  Ask me anything about your documents - I&apos;ll use AI to provide contextual answers
                 </p>
               </div>
             </div>
@@ -362,7 +360,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.txt,.json,.csv,.doc,.docx"
+              accept=".txt,.json,.csv,.doc,.docx,.md"
               onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
               className="hidden"
             />

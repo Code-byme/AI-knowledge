@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { query } from '@/lib/database';
 
 // GET /api/chat/sessions/[id]/messages - Get messages for a specific session
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     
     if (!session?.user?.id) {
@@ -15,7 +16,7 @@ export async function GET(
     }
 
     const userId = parseInt(session.user.id);
-    const sessionId = params.id;
+    const sessionId = id;
     
     // Verify session belongs to user
     const sessionCheck = await query(`
@@ -53,10 +54,11 @@ export async function GET(
 
 // POST /api/chat/sessions/[id]/messages - Add a message to a session
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     
     if (!session?.user?.id) {
@@ -64,7 +66,7 @@ export async function POST(
     }
 
     const userId = parseInt(session.user.id);
-    const sessionId = params.id;
+    const sessionId = id;
     const { role, content, documents_used = 0, metadata = {} } = await request.json();
     
     // Verify session belongs to user

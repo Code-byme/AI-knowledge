@@ -1,21 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import Navbar from '@/components/Navbar';
 import ChatBox from '@/components/ChatBox';
 import FileUpload from '@/components/FileUpload';
 import FileList from '@/components/FileList';
 import AuthProtection from '@/lib/auth-protection';
-import Link from 'next/link';
 import { 
   MessageSquare, 
-  FileText, 
-  User
+  FileText
 } from 'lucide-react';
 
 export default function DashboardPage() {

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,16 +16,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { 
   Brain, 
-  Bell, 
   User, 
-  Settings, 
   LogOut, 
   Menu,
   MessageSquare,
   FileText,
-  Database,
   BarChart3,
-  HelpCircle,
   Sparkles
 } from 'lucide-react';
 
@@ -34,12 +30,28 @@ export default function Navbar() {
   const isAuthenticated = status === 'authenticated';
   const user = session?.user;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleSmoothScroll = (href: string) => {
+    if (href.startsWith('#')) {
+      // Check if we're on the home page
+      if (window.location.pathname === '/') {
+        const element = document.querySelector(href);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        // If not on home page, navigate to home page with hash
+        router.push(`/${href}`);
+      }
+    }
+  };
 
   const navigationItems = [
     { label: 'Features', href: '#features' },
     { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'About', href: '#about' },
+    { label: 'Tech Stack', href: '#tech-stack' },
+    { label: 'Demo', href: '#demo' },
   ];
 
   const sidebarItems = [
@@ -65,13 +77,13 @@ export default function Navbar() {
           {!isAuthenticated && (
             <div className="hidden md:flex items-center space-x-8">
               {navigationItems.map((item) => (
-                <Link
+                <button
                   key={item.label}
-                  href={item.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => handleSmoothScroll(item.href)}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   {item.label}
-                </Link>
+                </button>
               ))}
             </div>
           )}
@@ -213,14 +225,16 @@ export default function Navbar() {
                   ) : (
                     <>
                       {navigationItems.map((item) => (
-                        <Link
+                        <button
                           key={item.label}
-                          href={item.href}
-                          className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                          onClick={() => setIsMobileMenuOpen(false)}
+                          onClick={() => {
+                            handleSmoothScroll(item.href);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full text-left cursor-pointer"
                         >
                           {item.label}
-                        </Link>
+                        </button>
                       ))}
                       <div className="pt-4 space-y-2">
                         <Button variant="ghost" asChild className="w-full justify-start">

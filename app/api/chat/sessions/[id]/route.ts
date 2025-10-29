@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { query } from '@/lib/database';
 
 // PUT /api/chat/sessions/[id] - Update a chat session
 export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     
     if (!session?.user?.id) {
@@ -16,7 +17,7 @@ export async function PUT(
 
     const userId = parseInt(session.user.id);
     const { title, is_active } = await request.json();
-    const sessionId = params.id;
+    const sessionId = id;
     
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
@@ -46,10 +47,11 @@ export async function PUT(
 
 // DELETE /api/chat/sessions/[id] - Delete a chat session
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     
     if (!session?.user?.id) {
@@ -57,7 +59,7 @@ export async function DELETE(
     }
 
     const userId = parseInt(session.user.id);
-    const sessionId = params.id;
+    const sessionId = id;
     
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID required' }, { status: 400 });

@@ -7,7 +7,7 @@ const dbConfig = {
   database: process.env.POSTGRES_DB || 'ai_knowledge_db',
   user: process.env.POSTGRES_USER || process.env.USER,
   password: process.env.POSTGRES_PASSWORD || '',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: false, // Disable SSL for local development
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
@@ -36,7 +36,7 @@ export const testConnection = async () => {
 };
 
 // Execute a query
-export const query = async (text: string, params?: any[]) => {
+export const query = async (text: string, params?: unknown[]) => {
   const start = Date.now();
   try {
     const res = await pool.query(text, params);

@@ -8,14 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Send, 
   Plus, 
-  MoreVertical, 
-  Paperclip, 
   Bot, 
   User,
   Loader2,
   MessageSquare,
   Trash2,
-  Edit3,
   FileText
 } from 'lucide-react';
 
@@ -103,7 +100,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
       const response = await fetch(`/api/chat/sessions/${sessionId}/messages`);
       if (response.ok) {
         const data = await response.json();
-        const formattedMessages: Message[] = data.messages.map((msg: any) => ({
+        const formattedMessages: Message[] = data.messages.map((msg: { id: number; role: string; content: string; created_at: string; documents_used?: number }) => ({
           id: msg.id.toString(),
           type: msg.role,
           content: msg.content,
@@ -403,7 +400,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
                 Welcome to AI Knowledge Hub
               </h3>
               <p className="text-muted-foreground max-w-md mx-auto text-lg leading-relaxed mb-6">
-                I'm your AI assistant powered by OpenRouter. Upload your documents and ask me anything - I'll use your knowledge base to provide helpful, contextual answers.
+                I&apos;m your AI assistant powered by OpenRouter. Upload your documents and ask me anything - I&apos;ll use your knowledge base to provide helpful, contextual answers.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
