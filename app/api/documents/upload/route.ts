@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { query } from '@/lib/database';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { put } from '@vercel/blob';
 import mammoth from 'mammoth';
 
 export async function POST(request: NextRequest) {
@@ -44,22 +42,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Create secure uploads directory if it doesn't exist (outside public)
-    const uploadsDir = join(process.cwd(), 'secure-uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
     // Generate unique filename
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop();
     const fileName = `${timestamp}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
-    const filePath = join(uploadsDir, fileName);
 
-    // Save file to disk
+    // Read file buffer (used for content extraction and for blob upload)
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
 
     // Extract text content for search
     let content = '';
@@ -87,7 +77,13 @@ export async function POST(request: NextRequest) {
       content = `[Error extracting content from ${file.name}: ${extractionError instanceof Error ? extractionError.message : 'Unknown error'}]`;
     }
 
-    // Save file info to database
+    // Upload file to Vercel Blob (serverless-friendly storage)
+    const blob = await put(fileName, buffer, {
+      access: 'public',
+      contentType: file.type,
+    });
+
+    // Save file info to database, storing blob URL instead of local path
     const result = await query(
       `INSERT INTO documents (user_id, title, content, file_path, file_type, file_size, created_at, updated_at) 
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
@@ -95,7 +91,7 @@ export async function POST(request: NextRequest) {
         parseInt(session.user.id),
         title || file.name,
         content,
-        fileName, // Store just the filename, not the full path
+        blob.url, // Store Blob URL for retrieval
         file.type,
         file.size
       ]

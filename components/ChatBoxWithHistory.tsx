@@ -437,7 +437,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
               <p className="text-muted-foreground max-w-md mx-auto text-sm leading-relaxed mb-6">
                 I&apos;m your AI assistant. Upload your documents and ask me anything - I&apos;ll use your knowledge base to provide helpful, contextual answers.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {/* <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   onClick={createNewSession}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -449,7 +449,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
                   <FileText className="h-4 w-4 mr-2" />
                   Upload Documents
                 </Button>
-              </div>
+              </div> */}
             </div>
           ) : (
             messages.map((message) => (
