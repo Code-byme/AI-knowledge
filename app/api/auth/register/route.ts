@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { query } from '@/lib/database';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,11 +15,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
+    const existingUserResult = await query('SELECT id FROM users WHERE email = $1', [email]);
+    const existingUser = existingUserResult.rows[0];
 
     if (existingUser) {
       return NextResponse.json(
@@ -36,27 +28,12 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user in Supabase
-    const { data: user, error } = await supabase
-      .from('users')
-      .insert([
-        {
-          name,
-          email,
-          password: hashedPassword,
-          created_at: new Date().toISOString(),
-        }
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Supabase error:', error);
-      return NextResponse.json(
-        { error: 'Failed to create user' },
-        { status: 500 }
-      );
-    }
+    // Create user in PostgreSQL
+    const result = await query(
+      'INSERT INTO users (name, email, password_hash, provider) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, email, hashedPassword, 'credentials']
+    );
+    const user = result.rows[0];
 
     return NextResponse.json(
       { message: 'User created successfully', user: { id: user.id, email: user.email, name: user.name } },

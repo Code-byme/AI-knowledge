@@ -4,11 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Navbar from '@/components/Navbar';
 import AuthProtection from '@/lib/auth-protection';
@@ -20,9 +17,13 @@ import {
   Save, 
   X,
   Shield,
-  Settings,
+  Zap,
   Download,
-  Trash2
+  Trash2,
+  Key,
+  CheckCircle,
+  IdCard,
+  Clock
 } from 'lucide-react';
 
 interface UserProfile {
@@ -251,12 +252,12 @@ export default function ProfilePage() {
   // Show loading while checking authentication
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+            <p className="text-slate-300">Loading...</p>
           </div>
         </div>
       </div>
@@ -267,11 +268,11 @@ export default function ProfilePage() {
   if (status === 'unauthenticated' || !session?.user?.id) {
     router.push('/login');
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
-            <p>Redirecting to login...</p>
+            <p className="text-slate-300">Redirecting to login...</p>
           </div>
         </div>
       </div>
@@ -281,12 +282,12 @@ export default function ProfilePage() {
   // Show loading while fetching profile data
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading profile...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+            <p className="text-slate-300">Loading profile...</p>
           </div>
         </div>
       </div>
@@ -295,12 +296,15 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background  text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
-            <p>Failed to load profile</p>
-            <Button onClick={fetchProfile} className="mt-4">
+            <p className="text-slate-300 mb-4">Failed to load profile</p>
+            <Button 
+              onClick={fetchProfile} 
+              className="bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white border-0"
+            >
               Try Again
             </Button>
           </div>
@@ -311,203 +315,240 @@ export default function ProfilePage() {
 
   return (
     <AuthProtection>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background  text-slate-100">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage your account information and preferences
-          </p>
-        </div>
+        <div className="container mx-auto px-5 py-8 max-w-6xl">
+          {/* Profile Header */}
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold bg-linear-to-r from-white to-violet-300 bg-clip-text text-transparent mb-3">
+              Profile
+            </h1>
+            <p className="text-slate-400 text-lg">
+              Manage your account information and preferences
+            </p>
+          </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Profile Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          {/* Profile Content */}
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            {/* Personal Information Card */}
+            <div className="bg-slate-800/50 backdrop-blur-lg border border-indigo-500/20 rounded-3xl p-8 transition-all duration-300 hover:border-indigo-500/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/10 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-linear-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <User className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-slate-100">Personal Information</h2>
+              </div>
+
               {isEditing ? (
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Name</Label>
+                    <Label htmlFor="name" className="text-slate-300">Name</Label>
                     <Input
                       id="name"
                       value={editForm.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="mt-1"
+                      className="mt-2 bg-slate-700/50 border-slate-600 text-slate-100 placeholder-slate-400 focus:border-indigo-500"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-slate-300">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={editForm.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="mt-1"
+                      className="mt-2 bg-slate-700/50 border-slate-600 text-slate-100 placeholder-slate-400 focus:border-indigo-500"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3 pt-4">
                     <Button 
                       onClick={handleSave} 
                       disabled={isSaving}
-                      className="flex items-center gap-2"
+                      className="flex-1 bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white border-0"
                     >
-                      <Save className="h-4 w-4" />
+                      <Save className="h-4 w-4 mr-2" />
                       {isSaving ? 'Saving...' : 'Save Changes'}
                     </Button>
                     <Button 
                       variant="outline" 
                       onClick={handleCancel}
                       disabled={isSaving}
-                      className="flex items-center gap-2"
+                      className="border-slate-600 text-slate-300 hover:bg-slate-700"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <User className="h-5 w-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">{profile.name}</p>
-                      <p className="text-sm text-gray-500">Full Name</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4 p-4 bg-indigo-500/5 rounded-xl hover:bg-indigo-500/10 transition-all duration-300 hover:translate-x-2">
+                    <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                      <User className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Full Name</div>
+                      <div className="text-slate-100 font-medium">{profile.name}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">{profile.email}</p>
-                      <p className="text-sm text-gray-500">Email Address</p>
+
+                  <div className="flex items-center gap-4 p-4 bg-indigo-500/5 rounded-xl hover:bg-indigo-500/10 transition-all duration-300 hover:translate-x-2">
+                    <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Email Address</div>
+                      <div className="text-slate-100 font-medium">{profile.email}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">
+
+                  <div className="flex items-center gap-4 p-4 bg-indigo-500/5 rounded-xl hover:bg-indigo-500/10 transition-all duration-300 hover:translate-x-2">
+                    <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Member Since</div>
+                      <div className="text-slate-100 font-medium">
                         {new Date(profile.created_at).toLocaleDateString()}
-                      </p>
-                      <p className="text-sm text-gray-500">Member Since</p>
+                      </div>
                     </div>
                   </div>
+
                   <Button 
                     onClick={handleEdit}
-                    className="flex items-center gap-2"
+                    className="w-full mt-4 bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white border-0 py-4 text-base font-semibold hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-300"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-4 w-4 mr-2" />
                     Edit Profile
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Account Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Account Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Account Status</span>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Active
-                </Badge>
+            {/* Account Information Card */}
+            <div className="bg-slate-800/50 backdrop-blur-lg border border-indigo-500/20 rounded-3xl p-8 transition-all duration-300 hover:border-indigo-500/40 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/10 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-linear-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-slate-100">Account Information</h2>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">User ID</span>
-                <span className="text-sm font-mono">{profile.id.slice(0, 8)}...</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Last Login</span>
-                <span className="text-sm">
-                  {profile.last_login_at 
-                    ? new Date(profile.last_login_at).toLocaleDateString()
-                    : 'Never'
-                  }
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Quick Actions */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-4 p-4 bg-indigo-500/5 rounded-xl hover:bg-indigo-500/10 transition-all duration-300 hover:translate-x-2">
+                  <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="h-5 w-5 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Account Status</div>
+                    <div className="inline-block px-4 py-1 bg-linear-to-r from-emerald-500 to-emerald-600 rounded-full text-xs font-semibold text-white uppercase tracking-wider">
+                      Active
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-indigo-500/5 rounded-xl hover:bg-indigo-500/10 transition-all duration-300 hover:translate-x-2">
+                  <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                    <IdCard className="h-5 w-5 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">User ID</div>
+                    <div className="text-slate-100 font-mono font-medium">{profile.id}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-indigo-500/5 rounded-xl hover:bg-indigo-500/10 transition-all duration-300 hover:translate-x-2">
+                  <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Last Login</div>
+                    <div className="text-slate-100 font-medium">
+                      {profile.last_login_at 
+                        ? new Date(profile.last_login_at).toLocaleDateString()
+                        : 'Never'
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-slate-800/50 backdrop-blur-lg border border-indigo-500/20 rounded-3xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-linear-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Zap className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-slate-100">Quick Actions</h2>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-3">
               <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline">
-                    Change Password
+                  <Button className="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 text-center h-auto">
+                    <div className="flex flex-col items-center gap-2">
+                      <Key className="h-6 w-6 text-indigo-400" />
+                      <span className="font-medium">Change Password</span>
+                    </div>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md bg-slate-800 border-slate-700">
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Shield className="h-5 w-5" />
+                    <DialogTitle className="flex items-center gap-2 text-slate-100">
+                      <Shield className="h-5 w-5 text-indigo-400" />
                       Change Password
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Label htmlFor="currentPassword" className="text-slate-300">Current Password</Label>
                       <Input
                         id="currentPassword"
                         type="password"
                         value={passwordForm.currentPassword}
                         onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                        className="mt-1"
+                        className="mt-2 bg-slate-700/50 border-slate-600 text-slate-100 placeholder-slate-400 focus:border-indigo-500"
                         placeholder="Enter your current password"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="newPassword">New Password</Label>
+                      <Label htmlFor="newPassword" className="text-slate-300">New Password</Label>
                       <Input
                         id="newPassword"
                         type="password"
                         value={passwordForm.newPassword}
                         onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                        className="mt-1"
+                        className="mt-2 bg-slate-700/50 border-slate-600 text-slate-100 placeholder-slate-400 focus:border-indigo-500"
                         placeholder="Enter your new password"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Label htmlFor="confirmPassword" className="text-slate-300">Confirm New Password</Label>
                       <Input
                         id="confirmPassword"
                         type="password"
                         value={passwordForm.confirmPassword}
                         onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                        className="mt-1"
+                        className="mt-2 bg-slate-700/50 border-slate-600 text-slate-100 placeholder-slate-400 focus:border-indigo-500"
                         placeholder="Confirm your new password"
                       />
                     </div>
                     {passwordError && (
-                      <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                      <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-lg">
                         {passwordError}
                       </div>
                     )}
-                    <div className="flex gap-2 pt-4">
+                    <div className="flex gap-3 pt-4">
                       <Button 
                         onClick={handleChangePassword}
                         disabled={isChangingPassword}
-                        className="flex-1"
+                        className="flex-1 bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white border-0"
                       >
                         {isChangingPassword ? (
                           <>
@@ -522,6 +563,7 @@ export default function ProfilePage() {
                         variant="outline" 
                         onClick={() => setIsPasswordModalOpen(false)}
                         disabled={isChangingPassword}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
                       >
                         Cancel
                       </Button>
@@ -532,27 +574,30 @@ export default function ProfilePage() {
               
               <Dialog open={isDownloadModalOpen} onOpenChange={setIsDownloadModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline">
-                    Download Data
+                  <Button className="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl text-slate-300 hover:bg-indigo-500/10 hover:border-indigo-500/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300 text-center h-auto">
+                    <div className="flex flex-col items-center gap-2">
+                      <Download className="h-6 w-6 text-indigo-400" />
+                      <span className="font-medium">Download Data</span>
+                    </div>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md bg-slate-800 border-slate-700">
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Download className="h-5 w-5" />
+                    <DialogTitle className="flex items-center gap-2 text-slate-100">
+                      <Download className="h-5 w-5 text-indigo-400" />
                       Download Your Data
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-slate-400">
                       This will download all your personal data in JSON format. 
                       The file will contain your profile information and account details.
                     </p>
-                    <div className="flex gap-2 pt-4">
+                    <div className="flex gap-3 pt-4">
                       <Button 
                         onClick={handleDownloadData}
                         disabled={isDownloading}
-                        className="flex-1"
+                        className="flex-1 bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white border-0"
                       >
                         {isDownloading ? (
                           <>
@@ -570,6 +615,7 @@ export default function ProfilePage() {
                         variant="outline" 
                         onClick={() => setIsDownloadModalOpen(false)}
                         disabled={isDownloading}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
                       >
                         Cancel
                       </Button>
@@ -580,46 +626,46 @@ export default function ProfilePage() {
               
               <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
                 <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Delete Account
+                  <Button className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl text-red-300 hover:bg-red-500/10 hover:border-red-500/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/20 transition-all duration-300 text-center h-auto">
+                    <div className="flex flex-col items-center gap-2">
+                      <Trash2 className="h-6 w-6 text-red-400" />
+                      <span className="font-medium">Delete Account</span>
+                    </div>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md bg-slate-800 border-slate-700">
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <DialogTitle className="flex items-center gap-2 text-red-400">
                       <Trash2 className="h-5 w-5" />
                       Delete Account
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                      <p className="text-sm text-red-800 font-medium">
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                      <p className="text-sm text-red-300 font-medium">
                         ⚠️ This action cannot be undone
                       </p>
-                      <p className="text-sm text-red-700 mt-1">
+                      <p className="text-sm text-red-400 mt-1">
                         All your data will be permanently deleted.
                       </p>
                     </div>
                     <div>
-                      <Label htmlFor="deleteConfirmation">
-                        Type "DELETE" to confirm account deletion
+                      <Label htmlFor="deleteConfirmation" className="text-slate-300">
+                        Type &quot;DELETE&quot; to confirm account deletion
                       </Label>
                       <Input
                         id="deleteConfirmation"
                         value={deleteConfirmation}
                         onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        className="mt-1"
+                        className="mt-2 bg-slate-700/50 border-slate-600 text-slate-100 placeholder-slate-400 focus:border-red-500"
                         placeholder="Type DELETE to confirm"
                       />
                     </div>
-                    <div className="flex gap-2 pt-4">
+                    <div className="flex gap-3 pt-4">
                       <Button 
                         onClick={handleDeleteAccount}
                         disabled={isDeleting || deleteConfirmation !== 'DELETE'}
-                        className="flex-1 bg-red-600 hover:bg-red-700"
+                        className="flex-1 bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0"
                       >
                         {isDeleting ? (
                           <>
@@ -640,6 +686,7 @@ export default function ProfilePage() {
                           setDeleteConfirmation('');
                         }}
                         disabled={isDeleting}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
                       >
                         Cancel
                       </Button>
@@ -648,10 +695,9 @@ export default function ProfilePage() {
                 </DialogContent>
               </Dialog>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-    </div>
     </AuthProtection>
   );
 }

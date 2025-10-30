@@ -1,31 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { auth } from '@/lib/auth';
+import { query } from '@/lib/database';
 
 // GET user profile
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, name, email, created_at, last_login')
-      .eq('id', session.user.id)
-      .single();
+    const result = await query(
+      'SELECT id, name, email, created_at, last_login FROM users WHERE id = $1',
+      [parseInt(session.user.id)]
+    );
+    const user = result.rows[0];
 
-    if (error) {
-      console.error('Database error:', error);
-      return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -47,7 +40,7 @@ export async function GET(request: NextRequest) {
 // UPDATE user profile
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -64,12 +57,11 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if email is already taken by another user
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .neq('id', session.user.id)
-      .single();
+    const existingUserResult = await query(
+      'SELECT id FROM users WHERE email = $1 AND id != $2',
+      [email, parseInt(session.user.id)]
+    );
+    const existingUser = existingUserResult.rows[0];
 
     if (existingUser) {
       return NextResponse.json(
@@ -79,19 +71,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update user profile
-    const { data: user, error } = await supabase
-      .from('users')
-      .update({
-        name,
-        email,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', session.user.id)
-      .select('id, name, email, created_at')
-      .single();
+    const updateResult = await query(
+      'UPDATE users SET name = $1, email = $2, updated_at = $3 WHERE id = $4 RETURNING id, name, email, created_at',
+      [name, email, new Date(), parseInt(session.user.id)]
+    );
+    const user = updateResult.rows[0];
 
-    if (error) {
-      console.error('Database error:', error);
+    if (!user) {
       return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
     }
 

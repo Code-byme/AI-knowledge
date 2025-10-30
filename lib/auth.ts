@@ -1,26 +1,42 @@
-import { NextAuthOptions } from 'next-auth';
-import { SupabaseAdapter } from '@auth/supabase-adapter';
-import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import NextAuth from 'next-auth';
+import Google from 'next-auth/providers/google';
+import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { createClient } from '@supabase/supabase-js';
+import { query } from './database';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export const authOptions: NextAuthOptions = {
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  }),
+export const { auth, handlers, signIn, signOut } = NextAuth({
+  trustHost: true, // Required for ngrok
+  secret: process.env.NEXTAUTH_SECRET,
+  cookies: {
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production"
+      }
+    },
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 30 * 24 * 60 * 60 // 30 days
+      }
+    }
+  },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    CredentialsProvider({
+    // Only add Google provider if credentials are provided
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      Google({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      })
+    ] : []),
+    Credentials({
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -32,21 +48,23 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Check if user exists in Supabase
-          const { data: user, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', credentials.email)
-            .single();
+          // Check if user exists in PostgreSQL
+          const result = await query('SELECT * FROM users WHERE email = $1', [credentials.email]);
+          const user = result.rows[0];
 
-          if (error || !user) {
-            return null;
+          if (!user) {
+            return null; // User doesn't exist
+          }
+
+          // If user exists but has no password (Google OAuth only), reject login
+          if (!user.password_hash) {
+            return null; // User exists but no password set
           }
 
           // Verify password
           const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.password
+            credentials.password as string,
+            user.password_hash as string
           );
 
           if (!isPasswordValid) {
@@ -54,7 +72,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           return {
-            id: user.id,
+            id: user.id.toString(),
             email: user.email,
             name: user.name,
             image: user.image,
@@ -68,9 +86,11 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
@@ -78,22 +98,40 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as any).id = token.id as string;
+        (session.user as { id: string }).id = token.id as string;
       }
       return session;
     },
-    async signIn({ user, account, profile }) {
-      // Update last login time when user signs in
-      if (user?.id) {
-        try {
-          await supabase
-            .from('users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('id', user.id);
-        } catch (error) {
-          console.error('Failed to update last login:', error);
-          // Don't block login if this fails
+    async signIn({ user, account }) {
+      try {
+        if (account?.provider === 'google' && user?.email) {
+          // Check if user already exists in database
+          const existingUser = await query('SELECT * FROM users WHERE email = $1', [user.email]);
+          
+          if (existingUser.rows.length > 0) {
+            // User exists - update last login and link the account
+            const dbUser = existingUser.rows[0];
+            await query(
+              'UPDATE users SET last_login = $1, image = $2 WHERE id = $3',
+              [new Date(), user.image || dbUser.image, dbUser.id]
+            );
+            // Update the user ID in the token to match database
+            user.id = dbUser.id.toString();
+          } else {
+            // New Google user - create account in database
+            const newUser = await query(
+              'INSERT INTO users (email, name, image, created_at, last_login) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+              [user.email, user.name, user.image, new Date(), new Date()]
+            );
+            user.id = newUser.rows[0].id.toString();
+          }
+        } else if (user?.id) {
+          // Regular credentials login - just update last login
+          await query('UPDATE users SET last_login = $1 WHERE id = $2', [new Date(), parseInt(user.id)]);
         }
+      } catch (error) {
+        console.error('Failed to handle sign in:', error);
+        // Don't block login if database operations fail
       }
       return true;
     },
@@ -101,4 +139,4 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
   },
-};
+});

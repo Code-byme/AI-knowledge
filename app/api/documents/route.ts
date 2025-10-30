@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { auth } from '@/lib/auth';
+import { query } from '@/lib/database';
 
 // Get user's documents
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -20,48 +14,46 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
     const fileType = searchParams.get('file_type');
     const search = searchParams.get('search');
 
-    let query = supabase
-      .from('documents')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
+    // Build query conditions
+    const whereConditions = ['user_id = $1'];
+    const params: string[] = [parseInt(session.user.id).toString()];
+    let paramCount = 1;
 
-    // Apply filters
-    if (status) {
-      query = query.eq('status', status);
-    }
-    
     if (fileType) {
-      query = query.eq('file_type', fileType);
+      paramCount++;
+      whereConditions.push(`file_type = $${paramCount}`);
+      params.push(fileType);
     }
     
     if (search) {
-      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+      paramCount++;
+      whereConditions.push(`(title ILIKE $${paramCount} OR content ILIKE $${paramCount})`);
+      params.push(`%${search}%`);
     }
 
-    // Pagination
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    query = query.range(from, to);
+    const whereClause = whereConditions.join(' AND ');
 
-    const { data: documents, error, count } = await query;
+    // Get total count
+    const countResult = await query(`SELECT COUNT(*) FROM documents WHERE ${whereClause}`, params);
+    const total = parseInt(countResult.rows[0].count);
 
-    if (error) {
-      console.error('Database error:', error);
-      return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 });
-    }
+    // Get documents with pagination
+    const documentsResult = await query(
+      `SELECT * FROM documents WHERE ${whereClause} ORDER BY created_at DESC OFFSET $${paramCount + 1} LIMIT $${paramCount + 2}`,
+      [...params, (page - 1) * limit, limit]
+    );
+    const documents = documentsResult.rows;
 
     return NextResponse.json({
       documents: documents || [],
       pagination: {
         page,
         limit,
-        total: count || 0,
-        pages: Math.ceil((count || 0) / limit)
+        total,
+        pages: Math.ceil(total / limit)
       }
     });
 
@@ -74,7 +66,7 @@ export async function GET(request: NextRequest) {
 // Delete document
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -88,38 +80,21 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get document to verify ownership and get file path
-    const { data: document, error: fetchError } = await supabase
-      .from('documents')
-      .select('file_path')
-      .eq('id', documentId)
-      .eq('user_id', session.user.id)
-      .single();
+    const documentResult = await query(
+      'SELECT file_path FROM documents WHERE id = $1 AND user_id = $2',
+      [parseInt(documentId), parseInt(session.user.id)]
+    );
+    const document = documentResult.rows[0];
 
-    if (fetchError || !document) {
+    if (!document) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
 
     // Delete from database
-    const { error: dbError } = await supabase
-      .from('documents')
-      .delete()
-      .eq('id', documentId)
-      .eq('user_id', session.user.id);
+    await query('DELETE FROM documents WHERE id = $1', [parseInt(documentId)]);
 
-    if (dbError) {
-      console.error('Database delete error:', dbError);
-      return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 });
-    }
-
-    // Delete file from storage
-    const { error: storageError } = await supabase.storage
-      .from('documents')
-      .remove([document.file_path]);
-
-    if (storageError) {
-      console.error('Storage delete error:', storageError);
-      // Don't fail the request if storage deletion fails
-    }
+    // TODO: Delete file from storage if needed
+    // For now, we'll just delete from database
 
     return NextResponse.json({ 
       message: 'Document deleted successfully' 

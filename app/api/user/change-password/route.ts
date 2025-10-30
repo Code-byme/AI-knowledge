@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { createClient } from '@supabase/supabase-js';
+import { auth } from '@/lib/auth';
+import { query } from '@/lib/database';
 import bcrypt from 'bcryptjs';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -34,18 +28,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get current user data
-    const { data: user, error: fetchError } = await supabase
-      .from('users')
-      .select('password')
-      .eq('id', session.user.id)
-      .single();
+    const userResult = await query('SELECT password_hash FROM users WHERE id = $1', [parseInt(session.user.id)]);
+    const user = userResult.rows[0];
 
-    if (fetchError || !user) {
+    if (!user || !user.password_hash) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isCurrentPasswordValid) {
       return NextResponse.json(
         { error: 'Current password is incorrect' },
@@ -57,18 +48,7 @@ export async function PUT(request: NextRequest) {
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
     // Update password
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        password: hashedNewPassword,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', session.user.id);
-
-    if (updateError) {
-      console.error('Database error:', updateError);
-      return NextResponse.json({ error: 'Failed to update password' }, { status: 500 });
-    }
+    await query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashedNewPassword, parseInt(session.user.id)]);
 
     return NextResponse.json({
       message: 'Password updated successfully'
