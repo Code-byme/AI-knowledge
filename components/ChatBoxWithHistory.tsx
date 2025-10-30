@@ -540,7 +540,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
                 className="flex-1 min-h-[60px] max-h-[140px] resize-none pr-12 bg-white/5 border border-white/10 text-slate-200 placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                 disabled={isTyping}
               />
-              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+              <div className="hidden lg:block absolute bottom-2 right-2 text-xs text-muted-foreground">
                 Press Enter to send, Shift+Enter for new line
               </div>
             </div>

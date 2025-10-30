@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
-import { 
-  Brain, 
-  User, 
-  LogOut, 
+import {
+  Brain,
+  User,
+  LogOut,
   Menu,
   MessageSquare,
   FileText,
@@ -98,7 +98,7 @@ export default function Navbar() {
                     Dashboard
                   </Link>
                 </Button>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -131,11 +131,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="text-destructive! hover:bg-primary!"
+                    <DropdownMenuItem
+                      variant="destructive"
+                      className="text-destructive!"
                       onClick={() => signOut()}
                     >
-                      <LogOut className="mr-2 h-4 w-4 text-rose-500!" />
+                      <LogOut className="mr-2 h-4 w-4 " />
                       Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -160,7 +161,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="outline" size="icon">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -194,11 +195,10 @@ export default function Navbar() {
                           <Link
                             key={item.label}
                             href={item.href}
-                            className={`flex items-center space-x-3 px-3 py-3 rounded-md text-sm font-medium transition-colors ${
-                              item.active
+                            className={`flex items-center space-x-3 px-3 py-3 rounded-md text-sm font-medium transition-colors ${item.active
                                 ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                            }`}
+                                : 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
+                               }`}
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
                             <item.icon className="h-4 w-4" />
@@ -206,11 +206,11 @@ export default function Navbar() {
                           </Link>
                         ))}
                       </div>
-                      
+
                       {/* Logout Button */}
                       <div className="pt-2">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => {
                             signOut();

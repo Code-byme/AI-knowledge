@@ -305,11 +305,11 @@ export default function FileList({ refreshTrigger }: FileListProps) {
                         <Badge className={getFileTypeColor(document.file_type)}>
                           {getFileTypeName(document.file_type)}
                         </Badge>
-                        <span className="text-sm text-muted-foreground flex items-center">
+                        <span className="hidden text-sm text-muted-foreground lg:flex items-center">
                           <HardDrive className="h-3 w-3 mr-1" />
                           {formatFileSize(document.file_size)}
                         </span>
-                        <span className="text-sm text-muted-foreground flex items-center">
+                        <span className="hidden text-sm text-muted-foreground lg:flex items-center">
                           <Calendar className="h-3 w-3 mr-1" />
                           {formatDistanceToNow(new Date(document.created_at), { addSuffix: true })}
                         </span>
