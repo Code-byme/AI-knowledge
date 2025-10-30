@@ -13,7 +13,7 @@ import {
   Loader2,
   MessageSquare,
   Trash2,
-  FileText
+  // FileText
 } from 'lucide-react';
 import {
   Dialog,
