@@ -381,9 +381,6 @@ export default function Home() {
                 A portfolio project showcasing full-stack development with AI integration.
               </p>
               <div className="flex space-x-4">
-                <a href="https://github.com/Code-byme/AI-knowledge" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
-                  GitHub
-                </a>
                 <a href="https://www.linkedin.com/in/amine-fadili-940357132/" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
                   LinkedIn
                 </a>
@@ -412,7 +409,6 @@ export default function Home() {
             <div className="space-y-4">
               <h3 className="font-semibold">Connect</h3>
               <ul className="space-y-2 text-muted-foreground">
-                <li><a href="https://github.com/Code-byme/AI-knowledge" target="_blank" className="hover:text-foreground transition-colors">GitHub Repository</a></li>
                 <li><a href="https://www.linkedin.com/in/amine-fadili-940357132/" target="_blank" className="hover:text-foreground transition-colors">LinkedIn Profile</a></li>
                 <li><a href="mailto:aminefadili.cg@gmail.com" className="hover:text-foreground transition-colors">Contact Me</a></li>
               </ul>
