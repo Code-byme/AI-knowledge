@@ -252,7 +252,7 @@ export default function ProfilePage() {
   // Show loading while checking authentication
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
+      <div className="min-h-screen bg-background text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
@@ -268,7 +268,7 @@ export default function ProfilePage() {
   if (status === 'unauthenticated' || !session?.user?.id) {
     router.push('/login');
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
+      <div className="min-h-screen bg-background text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
@@ -282,7 +282,7 @@ export default function ProfilePage() {
   // Show loading while fetching profile data
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
+      <div className="min-h-screen bg-background text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
@@ -296,7 +296,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
+      <div className="min-h-screen bg-background  text-slate-100">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
@@ -315,12 +315,12 @@ export default function ProfilePage() {
 
   return (
     <AuthProtection>
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
+      <div className="min-h-screen bg-background  text-slate-100">
         <Navbar />
         <div className="container mx-auto px-5 py-8 max-w-6xl">
           {/* Profile Header */}
           <div className="text-center mb-10">
-            <h1 className="text-5xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-3">
+            <h1 className="text-3xl font-bold bg-linear-to-r from-white to-violet-300 bg-clip-text text-transparent mb-3">
               Profile
             </h1>
             <p className="text-slate-400 text-lg">

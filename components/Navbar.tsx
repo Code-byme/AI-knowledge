@@ -124,7 +124,7 @@ export default function Navbar() {
                       </div>
                     </div>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="text-muted-foreground! hover:bg-primary!">
                       <Link href="/profile" className="flex items-center">
                         <User className="mr-2 h-4 w-4" />
                         Profile
@@ -132,10 +132,10 @@ export default function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
-                      className="text-destructive"
+                      className="text-destructive! hover:bg-primary!"
                       onClick={() => signOut()}
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
+                      <LogOut className="mr-2 h-4 w-4 text-rose-500!" />
                       Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -164,15 +164,15 @@ export default function Navbar() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] p-0">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                <div className="flex flex-col space-y-4">
+                <div className="flex flex-col space-y-4 p-4 pt-12">
                   {isAuthenticated ? (
                     <>
                       {/* User Profile Section */}
                       <Link
                         href="/profile"
-                        className="flex items-center space-x-3 p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                        className="flex items-center space-x-3 p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <Avatar className="h-8 w-8">
@@ -188,13 +188,13 @@ export default function Navbar() {
                       </Link>
 
                       {/* Mobile Dashboard Navigation */}
-                      <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-muted-foreground">Dashboard</h3>
+                      <div className="space-y-3">
+                        <h3 className="px-1 text-sm font-medium text-muted-foreground">Dashboard</h3>
                         {sidebarItems.map((item) => (
                           <Link
                             key={item.label}
                             href={item.href}
-                            className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                            className={`flex items-center space-x-3 px-3 py-3 rounded-md text-sm font-medium transition-colors ${
                               item.active
                                 ? 'bg-primary text-primary-foreground'
                                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
@@ -208,7 +208,7 @@ export default function Navbar() {
                       </div>
                       
                       {/* Logout Button */}
-                      <div className="pt-4">
+                      <div className="pt-2">
                         <Button 
                           variant="ghost" 
                           className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"

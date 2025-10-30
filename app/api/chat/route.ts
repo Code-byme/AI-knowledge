@@ -86,41 +86,56 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXTAUTH_URL || 'http://localhost:3000',
-        'X-Title': 'AI Knowledge Hub',
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-3.2-3b-instruct:free',      
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          {
-            role: 'user',
-            content: message
-          },
-          ...(documentContextMessage ? [{
-            role: 'system',
-            content: documentContextMessage
-          }] : [])
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-      }),
-    });
+    const callOpenRouter = async () => {
+      return await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.NEXTAUTH_URL || 'http://localhost:3000',
+          'X-Title': 'AI Knowledge Hub',
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-3.2-3b-instruct:free',      
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message },
+            ...(documentContextMessage ? [{ role: 'system', content: documentContextMessage }] : [])
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+        }),
+      });
+    };
+
+    // Retry with backoff on provider 429
+    let response = await callOpenRouter();
+    let attempt = 1;
+    const maxAttempts = 3;
+    while (response.status === 429 && attempt < maxAttempts) {
+      const baseDelayMs = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
+      const retryAfterHeader = response.headers.get('retry-after');
+      const retryAfterMs = retryAfterHeader ? parseInt(retryAfterHeader, 10) * 1000 : baseDelayMs;
+      await new Promise((r) => setTimeout(r, retryAfterMs));
+      attempt += 1;
+      response = await callOpenRouter();
+    }
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('OpenRouter API error:', errorData);
+      const text = await response.text();
+      console.error('OpenRouter API error:', text);
+      const status = response.status;
+      if (status === 429) {
+        const retryAfterHeader = response.headers.get('retry-after');
+        const retryAfterMs = retryAfterHeader ? parseInt(retryAfterHeader, 10) * 1000 : 3000;
+        return NextResponse.json(
+          { error: 'Provider rate limited', retryAfterMs },
+          { status: 429 }
+        );
+      }
       return NextResponse.json(
-        { error: `OpenRouter API error: ${response.status} ${response.statusText}` },
-        { status: response.status }
+        { error: `OpenRouter API error: ${status} ${response.statusText}` },
+        { status }
       );
     }
 

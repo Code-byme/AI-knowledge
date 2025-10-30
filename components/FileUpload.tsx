@@ -69,7 +69,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error('File type not supported. Allowed: PDF, TXT, DOC, DOCX, MD, JSON, CSV');
+      toast.error('File type not supported. Allowed: TXT, DOC, DOCX, MD, JSON, CSV');
       return;
     }
 
@@ -166,10 +166,10 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
   return (
     <div className="w-full">
       <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary transition-colors">
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           {!selectedFile ? (
             <div
-              className={`relative flex flex-col items-center justify-center py-12 px-6 text-center transition-colors ${
+              className={`relative flex flex-col items-center justify-center py-4 px-4 text-center transition-colors ${
                 dragActive 
                   ? 'bg-primary/5 border-primary' 
                   : 'hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -179,23 +179,24 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <div className="flex flex-col items-center space-y-4">
-                <div className="p-4 rounded-full bg-primary/10">
-                  <Upload className="h-8 w-8 text-primary" />
+              <div className="flex flex-col items-center space-y-2">
+                <div className="p-2 rounded-full bg-primary/10">
+                  <Upload className="h-5 w-5 text-primary" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Upload your documents</h3>
-                  <p className="text-sm text-muted-foreground">
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold">Upload your documents</h3>
+                  <p className="text-xs text-muted-foreground">
                     Drag and drop files here, or click to browse
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Supports PDF, TXT, DOC, DOCX, MD, JSON, CSV (max 10MB)
+                  <p className="text-[11px] text-muted-foreground">
+                    Supports TXT, DOC, DOCX, MD, JSON, CSV (max 10MB)
                   </p>
                 </div>
                 <Button
                   onClick={() => fileInputRef.current?.click()}
                   variant="outline"
-                  className="mt-4"
+                  size="sm"
+                  className="mt-2"
                 >
                   Choose Files
                 </Button>

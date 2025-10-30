@@ -120,7 +120,7 @@ export default function Home() {
                 disabled={status === 'loading'}
               >
                 <Sparkles className="mr-2 h-5 w-5" />
-                {status === 'loading' ? 'Loading...' : 'Get Started Free'}
+                Get Started Free
               </Button>
               <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
                 {/* <DialogTrigger asChild>
@@ -362,7 +362,7 @@ export default function Home() {
             onClick={handleGetStarted}
             disabled={status === 'loading'}
           >
-            {status === 'loading' ? 'Loading...' : 'Start Free Trial'}
+            Get Started Free
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
