@@ -123,35 +123,11 @@ export default function Home() {
                 Get Started Free
               </Button>
               <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
-                {/* <DialogTrigger asChild>
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-6 hover-lift">
-                    <PlayCircle className="mr-2 h-5 w-5" />
-                    Watch Demo
-                  </Button>
-                </DialogTrigger> */}
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-center">AI Knowledge Hub Demo</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-6">
-                    {/* Demo Video - Commented out for now */}
-                    {/* 
-                    <div className="relative w-full">
-                      <div className="relative w-full h-96 rounded-lg overflow-hidden">
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
-                          title="AI Knowledge Hub Demo"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          className="rounded-lg"
-                        ></iframe>
-                      </div>
-                    </div>
-                    */}
-                    
                     {/* Placeholder for now */}
                     <div className="relative w-full h-96 bg-linear-to-br from-slate-900 to-slate-800 rounded-lg border border-slate-700 flex items-center justify-center">
                       <div className="text-center space-y-4">
