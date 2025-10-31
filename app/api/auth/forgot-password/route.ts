@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
          WHERE id = $3`,
         [resetToken, resetTokenExpires, user.id]
       );
-    } catch (dbError: any) {
+    } catch (dbError: unknown) {
       // If columns don't exist, try alternative column names
       console.error('Database error:', dbError);
       

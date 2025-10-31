@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import Navbar from '@/components/Navbar';
 import { Brain, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
@@ -16,7 +15,6 @@ import { Brain, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -218,7 +216,7 @@ export default function SignupPage() {
                 type="submit" 
                 className="w-full" 
                 size="lg"
-                disabled={!agreeToTerms || isLoading}
+                disabled={isLoading}
               >
                 {isLoading ? 'Creating Account...' : 'Create Account'}
               </Button>

@@ -30,8 +30,9 @@ export async function POST(request: NextRequest) {
          AND password_reset_expires > NOW()`,
         [token]
       );
-    } catch (dbError: any) {
+    } catch (dbError: unknown) {
       // Try with alternative column name
+      console.error('Database error (trying alternative column names):', dbError);
       try {
         userResult = await query(
           `SELECT id, email, password_reset_token, password_reset_expire 
@@ -71,8 +72,9 @@ export async function POST(request: NextRequest) {
          WHERE id = $2`,
         [hashedPassword, user.id]
       );
-    } catch (dbError: any) {
+    } catch (dbError: unknown) {
       // Try with alternative column name
+      console.error('Database error (trying alternative column names):', dbError);
       try {
         await query(
           `UPDATE users 
