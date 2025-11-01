@@ -101,7 +101,7 @@ function LoginForm() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="Email Address"
                     value={formData.email}
                     onChange={handleInputChange}
                     className="pl-10"
@@ -118,7 +118,7 @@ function LoginForm() {
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
+                    placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange}
                     className="pl-10 pr-10"
