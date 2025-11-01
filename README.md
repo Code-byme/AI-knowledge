@@ -8,7 +8,6 @@ What it does
 - Upload documents (TXT, DOC/DOCX, MD, JSON, CSV)
 - Chat with an assistant; conversations are saved as history
 - See how many documents were used to answer
-- Files are stored securely outside the public web root
 
 How to run
 ----------

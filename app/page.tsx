@@ -356,11 +356,11 @@ export default function Home() {
               <p className="text-muted-foreground">
                 A portfolio project showcasing full-stack development with AI integration.
               </p>
-              <div className="flex space-x-4">
+              {/* <div className="flex space-x-4">
                 <a href="https://www.linkedin.com/in/amine-fadili-940357132/" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
                   LinkedIn
                 </a>
-              </div>
+              </div> */}
             </div>
             
             <div className="space-y-4">
@@ -393,7 +393,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2025 AI Knowledge Hub - Portfolio Project by Amine Fadili</p>
+            <p>&copy; 2025 AI Knowledge Hub - by Amine Fadili</p>
             <p className="text-sm mt-2">Built with ❤️ using Next.js, PostgreSQL, and AI</p>
           </div>
         </div>
