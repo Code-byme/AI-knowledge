@@ -38,6 +38,15 @@ export async function POST(request: NextRequest) {
         VALUES ($1, 'New Chat')
         RETURNING id
       `, [userId]);
+      
+      if (!newSession || !newSession.rows || newSession.rows.length === 0) {
+        console.error('Failed to create chat session');
+        return NextResponse.json(
+          { error: 'Failed to create chat session' },
+          { status: 500 }
+        );
+      }
+      
       currentSessionId = newSession.rows[0].id;
     } else {
       // Verify session belongs to user
@@ -139,7 +148,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      const responseText = await response.text();
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse OpenRouter API response:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid response format from AI service' },
+        { status: 500 }
+      );
+    }
+    
+    // Check for error in response (OpenRouter can return errors in 200 responses)
+    if (data?.error) {
+      const errorMessage = data.error.message || 'Provider returned error';
+      const errorCode = data.error.code || 500;
+      const providerName = data.error.metadata?.provider_name || 'Unknown';
+      console.error('OpenRouter API error:', JSON.stringify(data.error, null, 2));
+      return NextResponse.json(
+        { 
+          error: `${errorMessage} (Provider: ${providerName})`,
+          code: errorCode
+        },
+        { status: errorCode >= 400 && errorCode < 600 ? errorCode : 500 }
+      );
+    }
+    
+    // Validate response structure
+    if (!data || !data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+      console.error('Invalid OpenRouter API response:', JSON.stringify(data, null, 2));
+      return NextResponse.json(
+        { error: 'Invalid response from AI service' },
+        { status: 500 }
+      );
+    }
+    
     const assistantResponse = data.choices[0]?.message?.content || 'No response received';
     
     // Save assistant message to database
