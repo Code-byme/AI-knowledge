@@ -1,0 +1,21 @@
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-knowledge-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env  # Load all environment variables from .env
+    environment:
+      # Explicitly set NODE_ENV for production
+      # All other variables (DATABASE_URL, NEXTAUTH_SECRET, OPENROUTER_API_KEY, etc.)
+      # are automatically loaded from .env via env_file above
+      NODE_ENV: production
+    volumes:
+      # Persist uploaded files
+      - ./secure-uploads:/app/secure-uploads
+
