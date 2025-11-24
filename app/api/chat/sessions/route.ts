@@ -11,7 +11,11 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId = Number(session.user.id);
+    
+    if (!Number.isInteger(userId)) {
+      return NextResponse.json({ error: 'Invalid user id' }, { status: 400 });
+    }
     
     // Get all chat sessions for the user, ordered by most recent
     const sessions = await query(`
@@ -49,7 +53,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId = Number(session.user.id);
+    
+    if (!Number.isInteger(userId)) {
+      return NextResponse.json({ error: 'Invalid user id' }, { status: 400 });
+    }
     const { title } = await request.json();
     
     // Create new chat session
