@@ -317,6 +317,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
 
       {/* Input Area - Fixed at bottom */}
       <div className="bg-card border border-border rounded-lg p-4 shrink-0">
+
         {/* File Selection Display */}
         {selectedFile && (
           <div className="mb-3 p-3 bg-muted rounded-lg flex items-center justify-between">

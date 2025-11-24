@@ -66,17 +66,72 @@ export async function POST(request: NextRequest) {
       VALUES ($1, 'user', $2, 0)
     `, [currentSessionId, message]);
 
-    // Get user's documents for context
+    // Load recent documents for heuristic ranking
+    type UserDocumentRecord = {
+      id: number;
+      title: string;
+      content: string;
+      file_type: string;
+      file_path: string | null;
+    };
+
     const documentsResult = await query(
       `SELECT id, title, content, file_type, file_path 
        FROM documents 
-       WHERE user_id = $1 AND content IS NOT NULL AND content != ''
-       ORDER BY created_at DESC 
-       LIMIT 10`,
+       WHERE user_id = $1 
+         AND content IS NOT NULL 
+         AND content != ''
+       ORDER BY updated_at DESC NULLS LAST, created_at DESC 
+       LIMIT 25`,
       [userId]
     );
 
-    const documents = documentsResult.rows;
+    const recentDocuments: UserDocumentRecord[] = documentsResult.rows;
+
+    const sanitizedMessage = message.toLowerCase();
+    const keywords = sanitizedMessage
+      .split(/[^a-zA-Z0-9]+/)
+      .map((word: string) => word.trim())
+      .filter((word: string) => word.length >= 3)
+      .slice(0, 25);
+
+    const scoreDocument = (doc: UserDocumentRecord) => {
+      let score = 0;
+
+      const titleLower = (doc.title || '').toLowerCase();
+      const fileNameLower = doc.file_path
+        ? doc.file_path.split('/').pop()?.split('.')[0]?.toLowerCase() || ''
+        : '';
+      const contentForSearch = (doc.content || '').slice(0, 4000).toLowerCase();
+
+      if (titleLower && sanitizedMessage.includes(titleLower)) {
+        score += 10;
+      }
+
+      keywords.forEach((keyword: string) => {
+        if (titleLower.includes(keyword)) score += 5;
+        if (fileNameLower && fileNameLower.includes(keyword)) score += 4;
+        if (contentForSearch.includes(keyword)) score += 1;
+      });
+
+      // Prefer shorter titles when multiple docs share same keywords
+      const titleWordCount = titleLower ? titleLower.trim().split(/\s+/).length : 0;
+      score += Math.max(0, 3 - Math.min(2, Math.max(0, titleWordCount - 1)));
+      return score;
+    };
+
+    const rankedDocuments = recentDocuments
+      .map((doc) => ({ doc, score: scoreDocument(doc) }))
+      .sort((a, b) => b.score - a.score);
+
+    const hasMeaningfulMatch = rankedDocuments.length > 0 && rankedDocuments[0].score > 0;
+
+    const documents =
+      rankedDocuments.length === 0
+        ? []
+        : hasMeaningfulMatch
+        ? rankedDocuments.slice(0, 3).map((entry) => entry.doc)
+        : recentDocuments.slice(0, 3);
 
     // Create the optimized prompt structure
     const systemPrompt = "You are an AI assistant helping users with their uploaded documents. Provide accurate and helpful responses based on the document content.";
