@@ -18,7 +18,7 @@ export async function GET(
     }
 
     const documentId = id;
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
 
     // Get document info and verify ownership
     const result = await query(
@@ -73,7 +73,7 @@ export async function DELETE(
     }
 
     const documentId = id;
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
 
     // Get document info and verify ownership
     const result = await query(

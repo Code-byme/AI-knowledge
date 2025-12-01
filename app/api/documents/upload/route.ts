@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       `INSERT INTO documents (user_id, title, content, file_path, file_type, file_size, created_at, updated_at) 
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
       [
-        parseInt(session.user.id),
+        session.user.id,
         title || file.name,
         content,
         blob.url, // Store Blob URL for retrieval

@@ -15,7 +15,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
     const { title, is_active } = await request.json();
     const sessionId = id;
     
@@ -58,7 +58,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
     const sessionId = id;
     
     if (!sessionId) {

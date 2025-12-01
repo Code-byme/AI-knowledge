@@ -28,7 +28,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get current user data
-    const userResult = await query('SELECT password_hash FROM users WHERE id = $1', [parseInt(session.user.id)]);
+    const userResult = await query('SELECT password_hash FROM users WHERE id = $1', [session.user.id]);
     const user = userResult.rows[0];
 
     if (!user || !user.password_hash) {
@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest) {
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
     // Update password
-    await query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashedNewPassword, parseInt(session.user.id)]);
+    await query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashedNewPassword, session.user.id]);
 
     return NextResponse.json({
       message: 'Password updated successfully'

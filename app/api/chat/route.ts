@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
     let currentSessionId = sessionId;
 
     // Create new session if none provided

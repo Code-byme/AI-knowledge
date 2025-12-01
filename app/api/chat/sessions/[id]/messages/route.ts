@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
     const sessionId = id;
     
     // Verify session belongs to user
@@ -65,7 +65,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
     const sessionId = id;
     const { role, content, documents_used = 0, metadata = {} } = await request.json();
     

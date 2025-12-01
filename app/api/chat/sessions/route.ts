@@ -12,6 +12,7 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    console.log('userId', userId);
     
     // Get all chat sessions for the user, ordered by most recent
     const sessions = await query(`

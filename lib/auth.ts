@@ -127,7 +127,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           }
         } else if (user?.id) {
           // Regular credentials login - just update last login
-          await query('UPDATE users SET last_login = $1 WHERE id = $2', [new Date(), parseInt(user.id)]);
+          await query('UPDATE users SET last_login = $1 WHERE id = $2', [new Date(), user.id]);
         }
       } catch (error) {
         console.error('Failed to handle sign in:', error);

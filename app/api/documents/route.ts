@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     // Build query conditions
     const whereConditions = ['user_id = $1'];
-    const params: string[] = [parseInt(session.user.id).toString()];
+    const params: (string | number)[] = [session.user.id];
     let paramCount = 1;
 
     if (fileType) {
@@ -82,7 +82,7 @@ export async function DELETE(request: NextRequest) {
     // Get document to verify ownership and get file path
     const documentResult = await query(
       'SELECT file_path FROM documents WHERE id = $1 AND user_id = $2',
-      [parseInt(documentId), parseInt(session.user.id)]
+      [documentId, session.user.id]
     );
     const document = documentResult.rows[0];
 
@@ -91,7 +91,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from database
-    await query('DELETE FROM documents WHERE id = $1', [parseInt(documentId)]);
+    await query('DELETE FROM documents WHERE id = $1', [documentId]);
 
     // TODO: Delete file from storage if needed
     // For now, we'll just delete from database

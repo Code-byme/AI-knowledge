@@ -13,7 +13,7 @@ export async function GET() {
     // Get all user data
     const result = await query(
       'SELECT * FROM users WHERE id = $1',
-      [parseInt(session.user.id)]
+      [session.user.id]
     );
     const user = result.rows[0];
 

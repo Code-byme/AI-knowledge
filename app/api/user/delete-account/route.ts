@@ -23,7 +23,7 @@ export async function DELETE(request: NextRequest) {
     // Get current user data
     const userResult = await query(
       'SELECT password_hash FROM users WHERE id = $1',
-      [parseInt(session.user.id)]
+      [session.user.id]
     );
     const user = userResult.rows[0];
 
@@ -41,7 +41,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete user account
-    await query('DELETE FROM users WHERE id = $1', [parseInt(session.user.id)]);
+    await query('DELETE FROM users WHERE id = $1', [session.user.id]);
 
     return NextResponse.json({
       message: 'Account deleted successfully'
