@@ -170,15 +170,20 @@ export default function ChatBox({ className }: ChatBoxProps) {
   };
 
   const attemptSend = async (attempt: number, messageText: string) => {
+    const payload: Record<string, unknown> = {
+      message: messageText,
+    };
+
+    if (currentSessionId) {
+      payload.sessionId = currentSessionId;
+    }
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        message: messageText,
-        sessionId: currentSessionId 
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
