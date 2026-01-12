@@ -10,10 +10,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     // Get all user data
     const result = await query(
       'SELECT * FROM users WHERE id = $1',
-      [session.user.id]
+      [userId]
     );
     const user = result.rows[0];
 

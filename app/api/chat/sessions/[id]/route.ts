@@ -15,14 +15,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = session.user.id;
-    const { title, is_active } = await request.json();
-    const sessionId = id;
-    
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
-
+    const { title, is_active } = await request.json();
+    const sessionId = parseInt(id, 10);
+    if (isNaN(sessionId)) {
+      return NextResponse.json({ error: 'Invalid session ID' }, { status: 400 });
+    }
+    
     // Update chat session
     const updatedSession = await query(`
       UPDATE chat_sessions 
@@ -58,11 +60,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = session.user.id;
-    const sessionId = id;
-    
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
+    const sessionId = parseInt(id, 10);
+    if (isNaN(sessionId)) {
+      return NextResponse.json({ error: 'Invalid session ID' }, { status: 400 });
     }
 
     // Delete chat session (cascade will delete messages)

@@ -11,9 +11,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     const result = await query(
       'SELECT id, name, email, created_at, last_login FROM users WHERE id = $1',
-      [session.user.id]
+      [userId]
     );
     const user = result.rows[0];
 
@@ -56,10 +60,14 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     // Check if email is already taken by another user
     const existingUserResult = await query(
       'SELECT id FROM users WHERE email = $1 AND id != $2',
-      [email, session.user.id]
+      [email, userId]
     );
     const existingUser = existingUserResult.rows[0];
 
@@ -73,7 +81,7 @@ export async function PUT(request: NextRequest) {
     // Update user profile
     const updateResult = await query(
       'UPDATE users SET name = $1, email = $2, updated_at = $3 WHERE id = $4 RETURNING id, name, email, created_at',
-      [name, email, new Date(), session.user.id]
+      [name, email, new Date(), userId]
     );
     const user = updateResult.rows[0];
 

@@ -18,8 +18,12 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
 
     // Build query conditions
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     const whereConditions = ['user_id = $1'];
-    const params: (string | number)[] = [session.user.id];
+    const params: (string | number)[] = [userId];
     let paramCount = 1;
 
     if (fileType) {
@@ -79,10 +83,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Document ID required' }, { status: 400 });
     }
 
+    const parsedDocumentId = parseInt(documentId, 10);
+    if (isNaN(parsedDocumentId)) {
+      return NextResponse.json({ error: 'Invalid document ID' }, { status: 400 });
+    }
+
     // Get document to verify ownership and get file path
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     const documentResult = await query(
       'SELECT file_path FROM documents WHERE id = $1 AND user_id = $2',
-      [documentId, session.user.id]
+      [parsedDocumentId, userId]
     );
     const document = documentResult.rows[0];
 
@@ -91,7 +104,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from database
-    await query('DELETE FROM documents WHERE id = $1', [documentId]);
+    await query('DELETE FROM documents WHERE id = $1', [parsedDocumentId]);
 
     // TODO: Delete file from storage if needed
     // For now, we'll just delete from database

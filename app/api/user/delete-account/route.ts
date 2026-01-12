@@ -20,10 +20,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     // Get current user data
     const userResult = await query(
       'SELECT password_hash FROM users WHERE id = $1',
-      [session.user.id]
+      [userId]
     );
     const user = userResult.rows[0];
 
@@ -41,7 +45,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete user account
-    await query('DELETE FROM users WHERE id = $1', [session.user.id]);
+    await query('DELETE FROM users WHERE id = $1', [userId]);
 
     return NextResponse.json({
       message: 'Account deleted successfully'

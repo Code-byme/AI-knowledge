@@ -84,11 +84,15 @@ export async function POST(request: NextRequest) {
     });
 
     // Save file info to database, storing blob URL instead of local path
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     const result = await query(
       `INSERT INTO documents (user_id, title, content, file_path, file_type, file_size, created_at, updated_at) 
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
       [
-        session.user.id,
+        userId,
         title || file.name,
         content,
         blob.url, // Store Blob URL for retrieval

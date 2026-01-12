@@ -28,7 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = session.user.id;
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
     let currentSessionId = sessionId;
 
     // Create new session if none provided
@@ -50,21 +53,30 @@ export async function POST(request: NextRequest) {
       currentSessionId = newSession.rows[0].id;
     } else {
       // Verify session belongs to user
+      const parsedSessionId = parseInt(currentSessionId, 10);
+      if (isNaN(parsedSessionId)) {
+        return NextResponse.json({ error: 'Invalid session ID' }, { status: 400 });
+      }
       const sessionCheck = await query(`
         SELECT id FROM chat_sessions 
         WHERE id = $1 AND user_id = $2
-      `, [currentSessionId, userId]);
+      `, [parsedSessionId, userId]);
 
       if (sessionCheck.rows.length === 0) {
         return NextResponse.json({ error: 'Session not found' }, { status: 404 });
       }
+      currentSessionId = parsedSessionId;
     }
 
     // Save user message to database
+    const finalSessionId = typeof currentSessionId === 'number' ? currentSessionId : parseInt(String(currentSessionId), 10);
+    if (isNaN(finalSessionId)) {
+      return NextResponse.json({ error: 'Invalid session ID' }, { status: 400 });
+    }
     await query(`
       INSERT INTO chat_messages (session_id, role, content, documents_used)
       VALUES ($1, 'user', $2, 0)
-    `, [currentSessionId, message]);
+    `, [finalSessionId, message]);
 
     // Load recent documents for heuristic ranking
     type UserDocumentRecord = {
@@ -245,21 +257,21 @@ export async function POST(request: NextRequest) {
     await query(`
       INSERT INTO chat_messages (session_id, role, content, documents_used)
       VALUES ($1, 'assistant', $2, $3)
-    `, [currentSessionId, assistantResponse, documents.length]);
+    `, [finalSessionId, assistantResponse, documents.length]);
 
     // Update session's updated_at timestamp
     await query(`
       UPDATE chat_sessions 
       SET updated_at = NOW() 
       WHERE id = $1
-    `, [currentSessionId]);
+    `, [finalSessionId]);
     
     return NextResponse.json({
       success: true,
       response: assistantResponse,
       usage: data.usage,
       documentsUsed: documents.length,
-      sessionId: currentSessionId,
+      sessionId: finalSessionId,
     });
 
   } catch (error) {

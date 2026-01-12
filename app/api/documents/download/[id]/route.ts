@@ -17,8 +17,14 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const documentId = id;
-    const userId = session.user.id;
+    const documentId = parseInt(id, 10);
+    if (isNaN(documentId)) {
+      return NextResponse.json({ error: 'Invalid document ID' }, { status: 400 });
+    }
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
 
     // Get document info and verify ownership
     const result = await query(
@@ -72,8 +78,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const documentId = id;
-    const userId = session.user.id;
+    const documentId = parseInt(id, 10);
+    if (isNaN(documentId)) {
+      return NextResponse.json({ error: 'Invalid document ID' }, { status: 400 });
+    }
+    const userId = parseInt(session.user.id, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
 
     // Get document info and verify ownership
     const result = await query(
