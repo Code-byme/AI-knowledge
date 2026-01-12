@@ -1,11 +1,11 @@
-import NextAuth from 'next-auth';
+import NextAuth, { getServerSession } from 'next-auth';
+import type { AuthOptions } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { query } from './database';
 
-export const { auth, handlers, signIn, signOut } = NextAuth({
-  trustHost: true, // Required for ngrok
+export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   cookies: {
     pkceCodeVerifier: {
@@ -139,4 +139,15 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/login',
   },
-});
+};
+
+// Create NextAuth handler for routes
+export const handlers = NextAuth(authOptions);
+
+// Export auth function using getServerSession (NextAuth v4 pattern)
+export async function auth() {
+  return await getServerSession(authOptions);
+}
+
+// signIn and signOut are used client-side from 'next-auth/react'
+// For server-side, we don't typically export them from here
