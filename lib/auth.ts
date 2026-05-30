@@ -5,6 +5,42 @@ import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { query } from './database';
 
+const PG_INTEGER_MAX = BigInt(2147483647);
+
+/** PostgreSQL user ids are SERIAL integers — not Google OAuth subs. */
+export function isValidDbUserId(id: unknown): boolean {
+  if (typeof id !== 'string' || !/^\d+$/.test(id)) return false;
+  try {
+    const n = BigInt(id);
+    return n > BigInt(0) && n <= PG_INTEGER_MAX;
+  } catch {
+    return false;
+  }
+}
+
+async function getOrCreateDbUserId(
+  email: string,
+  name?: string | null,
+  image?: string | null
+): Promise<string> {
+  const existing = await query('SELECT id, image FROM users WHERE email = $1', [email]);
+
+  if (existing.rows.length > 0) {
+    const dbUser = existing.rows[0] as { id: number; image: string | null };
+    await query(
+      'UPDATE users SET last_login = $1, image = $2 WHERE id = $3',
+      [new Date(), image || dbUser.image, dbUser.id]
+    );
+    return dbUser.id.toString();
+  }
+
+  const newUser = await query(
+    'INSERT INTO users (email, name, image, created_at, last_login) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+    [email, name ?? null, image ?? null, new Date(), new Date()]
+  );
+  return (newUser.rows[0] as { id: number }).id.toString();
+}
+
 export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   cookies: {
@@ -90,48 +126,74 @@ export const authOptions: AuthOptions = {
     updateAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account }) {
+      if (user?.email) {
+        token.email = user.email;
+      }
+
+      // Google OAuth `sub` is huge and does not fit PostgreSQL INTEGER columns.
+      if (user?.email && account?.provider === 'google') {
+        try {
+          token.id = await getOrCreateDbUserId(user.email, user.name, user.image);
+        } catch (error) {
+          console.error('Failed to link Google account to database user:', error);
+        }
+      } else if (user?.id && isValidDbUserId(user.id)) {
         token.id = user.id;
       }
+
+      // Heal JWTs that still store Google's provider id instead of our users.id
+      if (token.email && !isValidDbUserId(token.id as string)) {
+        try {
+          token.id = await getOrCreateDbUserId(
+            token.email as string,
+            token.name as string | null | undefined,
+            (token.picture as string | null | undefined) ?? null
+          );
+        } catch (error) {
+          console.error('Failed to resolve database user id for session:', error);
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        (session.user as { id: string }).id = token.id as string;
+      if (!token || !session.user) {
+        return session;
       }
+
+      let userId = token.id as string | undefined;
+
+      if (!isValidDbUserId(userId) && token.email) {
+        try {
+          userId = await getOrCreateDbUserId(
+            token.email as string,
+            session.user.name,
+            session.user.image
+          );
+        } catch (error) {
+          console.error('Failed to resolve session user id:', error);
+        }
+      }
+
+      if (isValidDbUserId(userId)) {
+        (session.user as { id: string }).id = userId as string;
+      }
+
       return session;
     },
     async signIn({ user, account }) {
       try {
         if (account?.provider === 'google' && user?.email) {
-          // Check if user already exists in database
-          const existingUser = await query('SELECT * FROM users WHERE email = $1', [user.email]);
-          
-          if (existingUser.rows.length > 0) {
-            // User exists - update last login and link the account
-            const dbUser = existingUser.rows[0];
-            await query(
-              'UPDATE users SET last_login = $1, image = $2 WHERE id = $3',
-              [new Date(), user.image || dbUser.image, dbUser.id]
-            );
-            // Update the user ID in the token to match database
-            user.id = dbUser.id.toString();
-          } else {
-            // New Google user - create account in database
-            const newUser = await query(
-              'INSERT INTO users (email, name, image, created_at, last_login) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-              [user.email, user.name, user.image, new Date(), new Date()]
-            );
-            user.id = newUser.rows[0].id.toString();
-          }
-        } else if (user?.id) {
-          // Regular credentials login - just update last login
+          user.id = await getOrCreateDbUserId(user.email, user.name, user.image);
+        } else if (user?.id && isValidDbUserId(user.id)) {
           await query('UPDATE users SET last_login = $1 WHERE id = $2', [new Date(), user.id]);
         }
       } catch (error) {
         console.error('Failed to handle sign in:', error);
-        // Don't block login if database operations fail
+        if (account?.provider === 'google') {
+          return false;
+        }
       }
       return true;
     },
